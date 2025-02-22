@@ -1,7 +1,12 @@
+######## Sentiment analysis of headlines
+
 ##### Scraping all headlines from a page
 
 library(rvest)
 library(dplyr)
+library(readr)
+library(stringr)
+library(tidyr)
 
 # URL of the page
 url <- "https://thebridge.in/"
@@ -22,7 +27,6 @@ headlines_df <- data.frame(Headline = all_headlines)
 # View the dataframe
 print(headlines_df)
 
-```
 
 
 ##### Scraping all headlines from a website
@@ -94,8 +98,95 @@ Sys.sleep(5)  # Wait to see if it loads
 
 #NOTE: UNSUCCESSFUL
 
-##### Trying NLP on an article database
 
+##### Trying NLP on a headline database
 
+# Read the dataset
+headlines_df <- read_csv("Fake.csv")
 
+# Load text processing libraries
+library(tm)
+library(SnowballC)
+library(textclean)
+library(tidytext)
 
+# Convert text to lowercase
+headlines_df$title <- tolower(headlines_df$title)
+
+# Tokenize the headlines
+tidy_headlines <- headlines_df %>%
+  unnest_tokens(word, title)  # Use the correct column name 'title'
+
+# Remove stop words
+tidy_headlines <- tidy_headlines %>%
+  anti_join(stop_words)
+
+# Remove blank spaces and single-character tokens
+tidy_headlines <- tidy_headlines %>%
+  filter(nchar(word) > 1)  # Only keep words with more than one character
+
+# Remove any unwanted characters (e.g., punctuation, special characters)
+tidy_headlines$word <- gsub("[[:punct:]]", "", tidy_headlines$word)
+
+# Calculate word frequency
+word_freq <- tidy_headlines %>%
+  count(word, sort = TRUE)
+
+# View the top 10 frequent words
+head(word_freq, 10)
+
+## Emotion detection in the headlines
+# Get the NRC emotion lexicon
+library(tidyr)
+library(readxl)
+library(ggplot2)
+library(reshape2)
+
+# Load the data from the xlsx file
+nrc_lexicon <- read_excel("~/Downloads/NRC-Emotion-Lexicon-v0.92-In105Languages-Nov2017Translations.xlsx")
+
+# Select the relevant columns
+nrc_cleaned <- nrc_lexicon %>%
+  select(Word = `English (en)...1`, 
+         Positive, Negative, Anger, Anticipation, 
+         Disgust, Fear, Joy, Sadness, Surprise, Trust)
+
+# View the cleaned dataset
+head(nrc_cleaned)
+
+nrc_cleaned <- nrc_cleaned %>%
+  rename(word = Word)
+
+# Perform the inner join and calculate the sum of emotion scores for each headline
+headlines_emotions <- tidy_headlines %>%
+  inner_join(nrc_cleaned, by = "word") %>%
+  group_by(id = row_number()) %>%
+  summarize(across(c(Positive:Trust), sum, na.rm = TRUE))  # Aggregate emotion scores per headline
+
+# Merge the aggregated emotion scores back with the headlines dataframe
+headlines_emotions_df <- headlines_df %>%
+  mutate(id = row_number()) %>%
+  left_join(headlines_emotions, by = "id")
+
+# View the result to ensure proper merging
+head(headlines_emotions_df)
+
+headlines_emotions_df %>%
+  summarize(across(Positive:Trust, mean, na.rm = TRUE))
+
+#Basic bar chart visualisation
+
+headlines_emotions_df %>%
+  summarize(across(Positive:Trust, sum, na.rm = TRUE)) %>%
+  pivot_longer(cols = everything(), names_to = "Emotion", values_to = "Count") %>%
+  ggplot(aes(x = reorder(Emotion, -Count), y = Count, fill = Emotion)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Overall Emotional Distribution in Headlines",
+       x = "Emotion",
+       y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+library(reshape2)
+heatmap_data <- as.matrix(headlines_emotions_df %>% select(Positive:Trust))
+heatmap(heatmap_data, scale = "column", col = heat.colors(256))
