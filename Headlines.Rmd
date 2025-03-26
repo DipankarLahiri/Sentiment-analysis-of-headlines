@@ -1,0 +1,543 @@
+---
+title: "News Headline Analysis"
+author: "Dipankar Lahiri"
+date: "2025-03-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(rvest)
+library(dplyr)
+library(readr)
+library(stringr)
+library(tidyr)
+library(dplyr)
+library(tm)
+library(SnowballC)
+library(textclean)
+library(tidytext)
+library(readxl)
+library(ggplot2)
+library(reshape2)
+library(wordcloud)
+library(wordcloud2)
+library(RColorBrewer)
+library(igraph)
+library(ggraph)
+library(networkD3)
+library(treemap)
+library(topicmodels)
+library(wdman)
+library (viridis)
+
+```
+
+# EXISTING FAKE NEWS DATASET
+
+# Cleaning headlines for analysis, finding frequencies of words and word combinations.
+
+```{r}
+
+headlines_df <- read_csv("Fake.csv")
+headlines_df$title <- tolower(headlines_df$title)
+tidy_headlines <- headlines_df %>%
+  unnest_tokens(word, title)
+tidy_headlines <- tidy_headlines %>%
+  anti_join(stop_words)
+tidy_headlines <- tidy_headlines %>%
+  filter(nchar(word) > 1)
+tidy_headlines$word <- gsub("[[:punct:]]", "", tidy_headlines$word)
+
+word_freq <- tidy_headlines %>%
+  count(word, sort = TRUE)
+head(word_freq, 10)
+
+bigrams <- headlines_df %>%
+  unnest_tokens(bigram, title, token = "ngrams", n = 2) %>%
+  count(bigram, sort = TRUE)
+head(bigrams, 10)
+
+trigrams <- headlines_df %>%
+  unnest_tokens(trigram, title, token = "ngrams", n = 3) %>%
+  count(trigram, sort = TRUE)
+head(trigrams, 10)
+
+quadgrams <- headlines_df %>%
+  unnest_tokens(quadgram, title, token = "ngrams", n = 4) %>%
+  count(quadgram, sort = TRUE)
+head(quadgrams, 10)
+
+pentagrams <- headlines_df %>%
+  unnest_tokens(pentagram, title, token = "ngrams", n = 5) %>%
+  count(pentagram, sort = TRUE)
+head(pentagrams, 10)
+
+hexagrams <- headlines_df %>%
+  unnest_tokens(hexagram, title, token = "ngrams", n = 6) %>%
+  count(hexagram, sort = TRUE)
+head(hexagrams, 10)
+
+```
+
+# WORD FREQUENCY VISUALISATION
+
+# SINGLE WORDS - Word Cloud, Bar chart
+
+```{r}
+
+set.seed(123)
+wordcloud(words = word_freq$word, 
+          freq = word_freq$n, 
+          min.freq = 2, 
+          max.words = 100, 
+          random.order = FALSE, 
+          rot.per = 0.3, 
+          colors = brewer.pal(8, "Dark2"))
+
+top_words <- word_freq %>% slice_max(n, n = 15)
+ggplot(top_words, aes(x = reorder(word, n), y = n)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Top Words in Fake News Headlines",
+       x = "Words", y = "Frequency") +
+  theme_minimal()
+
+```
+
+# TWO-FOUR WORD PHRASES - Word Clouds, Bar Charts, Sankey Diagrams
+
+``` {r}
+
+bigrams %>%
+  filter(n > 5) %>% 
+  wordcloud2(size = 0.5)
+
+plot_ngrams <- function(df, title, top_n = 20) {
+  df %>%
+    as_tibble() %>%  
+    arrange(desc(n)) %>%  
+    head(top_n) %>%  
+    ggplot(aes(x = reorder(!!sym(names(df)[1]), n), y = n)) +  
+    geom_col(fill = "steelblue") +
+    coord_flip() +
+    labs(title = title, x = "N-Gram", y = "Frequency") +
+    theme_minimal()
+}
+
+plot_ngrams(trigrams, "Top 20 Trigrams")
+
+plot_ngrams(quadgrams, "Top 20 Quadgrams")
+
+sankey_data_trigram <- trigrams %>%
+  separate(trigram, into = c("word1", "word2", "word3"), sep = " ", remove = FALSE) %>%
+  top_n(20, wt = n)
+
+links_trigram <- data.frame(
+  source = c(sankey_data_trigram$word1, sankey_data_trigram$word2),
+  target = c(sankey_data_trigram$word2, sankey_data_trigram$word3),
+  value = rep(sankey_data_trigram$n, 2)
+)
+
+nodes_trigram <- data.frame(name = unique(c(links_trigram$source, links_trigram$target)))
+links_trigram$source <- match(links_trigram$source, nodes_trigram$name) - 1
+links_trigram$target <- match(links_trigram$target, nodes_trigram$name) - 1
+
+sankey_data_quadgram <- quadgrams %>%
+  separate(quadgram, into = c("word1", "word2", "word3", "word4"), sep = " ", remove = FALSE) %>%
+  top_n(20, wt = n)
+
+links_quadgram <- data.frame(
+  source = c(sankey_data_quadgram$word1, sankey_data_quadgram$word2, sankey_data_quadgram$word3),
+  target = c(sankey_data_quadgram$word2, sankey_data_quadgram$word3, sankey_data_quadgram$word4),
+  value = rep(sankey_data_quadgram$n, 3)
+)
+
+nodes_quadgram <- data.frame(name = unique(c(links_quadgram$source, links_quadgram$target)))
+links_quadgram$source <- match(links_quadgram$source, nodes_quadgram$name) - 1
+links_quadgram$target <- match(links_quadgram$target, nodes_quadgram$name) - 1
+
+sankeyNetwork(Links = links_trigram, Nodes = nodes_trigram, Source = "source", Target = "target",
+              Value = "value", NodeID = "name", fontSize = 12, nodeWidth = 30)
+
+sankeyNetwork(Links = links_quadgram, Nodes = nodes_quadgram, Source = "source", Target = "target",
+              Value = "value", NodeID = "name", fontSize = 12, nodeWidth = 30)
+
+```
+
+# FIVE-SIX WORD PHRASES - Network Graph, Treemap
+
+```{r}
+
+filtered_ngrams <- pentagrams %>%
+  filter(n > 3) %>%
+  separate(pentagram, into = c("w1", "w2", "w3", "w4", "w5"), sep = " ", remove = FALSE)
+
+graph <- graph_from_data_frame(filtered_ngrams, directed = FALSE)
+
+ggraph(graph, layout = "fr") +
+  geom_edge_link(aes(edge_alpha = n), show.legend = FALSE) +
+  geom_node_point(color = "blue", size = 3) +
+  geom_node_text(aes(label = name), repel = TRUE, size = 3) +
+  theme_minimal()
+
+hexagram_data <- hexagrams %>%
+  top_n(20, wt = n) %>%
+  separate(hexagram, into = c("w1", "w2", "w3", "w4", "w5", "w6"), sep = " ", remove = FALSE) %>%
+  mutate(category = paste(w1, w2, sep = "_"))
+
+treemap(hexagram_data,
+        index = "hexagram",
+        vSize = "n",
+        vColor = "n",
+        type = "index",
+        palette = "Blues",
+        title = "Hexagram Treemap")
+
+```
+
+## EMOTION DETECTION IN HEADLINES
+
+```{r}
+
+nrc_lexicon <- read_excel("~/Downloads/NRC-Emotion-Lexicon-v0.92-In105Languages-Nov2017Translations.xlsx")
+nrc_cleaned <- nrc_lexicon %>%
+  select(Word = `English (en)...1`, 
+         Positive, Negative, Anger, Anticipation, 
+         Disgust, Fear, Joy, Sadness, Surprise, Trust)
+nrc_cleaned <- nrc_cleaned %>%
+  rename(word = Word)
+
+headlines_emotions <- tidy_headlines %>%
+  inner_join(nrc_cleaned, by = "word") %>%
+  group_by(id = row_number()) %>%
+  summarize(across(c(Positive:Trust), sum, na.rm = TRUE))
+headlines_emotions_df <- headlines_df %>%
+  mutate(id = row_number()) %>%
+  left_join(headlines_emotions, by = "id")
+
+headlines_emotions_df %>%
+  summarize(across(Positive:Trust, mean, na.rm = TRUE))
+
+```
+
+# EMOTION VISUALISATION
+
+```{r}
+
+headlines_emotions_df %>%
+  summarize(across(Positive:Trust, sum, na.rm = TRUE)) %>%
+  pivot_longer(cols = everything(), names_to = "Emotion", values_to = "Count") %>%
+  ggplot(aes(x = reorder(Emotion, -Count), y = Count, fill = Emotion)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Overall Emotional Distribution in Headlines",
+       x = "Emotion",
+       y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+headlines_emotions_filtered <- headlines_emotions_df %>%
+  filter(rowSums(select(., Positive:Trust) > 0) > 0)
+heatmap_data <- as.matrix(headlines_emotions_filtered %>% select(Positive:Trust))
+heatmap(heatmap_data, 
+        scale = "column", 
+        col = heat.colors(256), 
+        margins = c(5, 10), 
+        xlab = "Emotion", 
+        ylab = "Headline",
+        main = "Emotion Heatmap of Fake News Headlines")
+
+
+```
+
+# SCRAPING HEADLINES FROM WEBSITE
+
+```{r}
+
+library(rvest)
+
+base_url <- "https://thebridge.in/latest"
+all_headlines <- c()  
+
+scrape_page <- function(url) {
+  page_html <- read_html(url)
+  h3_headlines <- page_html %>%
+    html_nodes("h3.bd-heading-text") %>%
+    html_text(trim = TRUE)
+  h4_headlines <- page_html %>%
+    html_nodes("h4.bd-heading-text") %>%
+    html_text(trim = TRUE)
+all_headlines <- c(h3_headlines, h4_headlines)
+  
+  return(all_headlines)
+}
+
+for (i in 1:1000) {
+  page_url <- ifelse(i == 1, base_url, paste0(base_url, "/", i))
+  cat("Scraping URL:", page_url, "\n")
+  headlines <- scrape_page(page_url)
+  all_headlines <- c(all_headlines, headlines)
+  cat("Scraped page", page_url, "with", length(headlines), "headlines.\n")
+}
+
+bridge_headlines_df <- data.frame(headline = all_headlines)
+
+```
+
+# CREATING A FUNCTION FOR AUTOMATION OF ANALYSIS
+
+```{r}
+
+process_headlines_full <- function(df, text_col, lexicon) {
+  library(tidyverse)
+  library(tidytext)
+  library(rvest)
+  library(wordcloud)
+  library(wordcloud2)
+  library(RColorBrewer)
+  library(igraph)
+  library(ggraph)
+  library(networkD3)
+  library(treemapify)
+  library(reshape2)
+  
+  # 1. Data Cleaning and Tokenization (Unigrams)
+  df <- df %>% 
+    rename(title = {{ text_col }}) %>%
+    mutate(title = tolower(title))
+  
+  tidy_df <- df %>%
+    unnest_tokens(word, title) %>%
+    anti_join(stop_words, by = "word") %>%
+    filter(nchar(word) > 1) %>%
+    mutate(word = gsub("[[:punct:]]", "", word))
+  
+  word_freq <- tidy_df %>% 
+    count(word, sort = TRUE)
+  
+  # 2. Generate N-grams
+  bigrams <- df %>% 
+    unnest_tokens(bigram, title, token = "ngrams", n = 2) %>%
+    count(bigram, sort = TRUE)
+  
+  trigrams <- df %>% 
+    unnest_tokens(trigram, title, token = "ngrams", n = 3) %>%
+    count(trigram, sort = TRUE)
+  
+  quadgrams <- df %>% 
+    unnest_tokens(quadgram, title, token = "ngrams", n = 4) %>%
+    count(quadgram, sort = TRUE)
+  
+  pentagrams <- df %>% 
+    unnest_tokens(pentagram, title, token = "ngrams", n = 5) %>%
+    count(pentagram, sort = TRUE)
+  
+  hexagrams <- df %>% 
+    unnest_tokens(hexagram, title, token = "ngrams", n = 6) %>%
+    count(hexagram, sort = TRUE)
+  
+  # 3. Visualizations for Word Frequencies
+  ## 3a. Unigram Word Cloud (displayed on screen)
+  wordcloud(words = word_freq$word, 
+            freq = word_freq$n, 
+            min.freq = 2, 
+            max.words = 100, 
+            random.order = FALSE, 
+            rot.per = 0.3, 
+            colors = brewer.pal(8, "Dark2"))
+  
+  ## 3b. Bar Chart for Top Unigrams
+  unigram_bar <- ggplot(word_freq %>% slice_max(n, n = 15), 
+                        aes(x = reorder(word, n), y = n)) +
+    geom_col(fill = "steelblue") +
+    coord_flip() +
+    labs(title = "Top Words in Headlines", x = "Words", y = "Frequency") +
+    theme_minimal()
+  
+  # 4. Bigram Word Cloud
+  wordcloud2::wordcloud2(bigrams %>% filter(n > 5), size = 0.5)
+  
+  # 5. Bar Charts for Trigrams and Quadgrams
+  plot_ngrams <- function(ngram_df, title_text) {
+    ngram_df %>% 
+      as_tibble() %>%  
+      arrange(desc(n)) %>%  
+      head(20) %>%  
+      ggplot(aes(x = reorder(!!sym(names(ngram_df)[1]), n), y = n)) +  
+      geom_col(fill = "steelblue") +
+      coord_flip() +
+      labs(title = title_text, x = "N-Gram", y = "Frequency") +
+      theme_minimal()
+  }
+  
+  trigram_bar <- plot_ngrams(trigrams, "Top 20 Trigrams")
+  quadgram_bar <- plot_ngrams(quadgrams, "Top 20 Quadgrams")
+  
+  # 6. Sankey Networks for Trigrams and Quadgrams
+  # Helper function: create_sankey() splits the n-gram column into consecutive word links.
+  create_sankey <- function(ngram_df, n_parts) {
+    # n_parts: number of words in the n-gram (e.g., 3 for trigrams, 4 for quadgrams)
+    # We'll create links for each consecutive pair.
+    splits <- paste0("word", 1:n_parts)
+    ngram_split <- ngram_df %>%
+      separate(col = !!sym(names(ngram_df)[1]), into = splits, sep = " ", remove = FALSE) %>%
+      filter(!is.na(.[[2]]))
+    
+    links_list <- list()
+    for(i in 1:(n_parts-1)) {
+      links_list[[i]] <- ngram_split %>% 
+        transmute(source = .[[splits[i]]],
+                  target = .[[splits[i+1]]],
+                  value = n)
+    }
+    links_df <- bind_rows(links_list)
+    nodes_df <- data.frame(name = unique(c(links_df$source, links_df$target)))
+    links_df <- links_df %>%
+      mutate(source = match(source, nodes_df$name) - 1,
+             target = match(target, nodes_df$name) - 1)
+    
+    sankeyNetwork(Links = links_df, Nodes = nodes_df, Source = "source", 
+                  Target = "target", Value = "value", NodeID = "name", 
+                  fontSize = 12, nodeWidth = 30)
+  }
+  
+  trigram_sankey <- create_sankey(trigrams, 3)
+  quadgram_sankey <- create_sankey(quadgrams, 4)
+  
+  # 7. Network Graph for Pentagrams
+  pentagram_graph <- function(penta_df) {
+    penta_split <- penta_df %>%
+      separate(pentagram, into = c("w1", "w2", "w3", "w4", "w5"), sep = " ", remove = FALSE) %>%
+      filter(!is.na(w2))
+    g <- graph_from_data_frame(penta_split, directed = FALSE)
+    ggraph(g, layout = "fr") +
+      geom_edge_link(aes(edge_alpha = n), show.legend = FALSE) +
+      geom_node_point(color = "blue", size = 3) +
+      geom_node_text(aes(label = name), repel = TRUE, size = 3) +
+      theme_minimal()
+  }
+  
+  pentagram_network <- pentagram_graph(pentagrams)
+  
+  # 8. Treemap for Hexagrams using treemapify
+  hexagram_treemap <- ggplot(hexagrams, aes(area = n, fill = n, label = hexagram)) +
+    geom_treemap() +
+    geom_treemap_text(colour = "white", place = "centre") +
+    scale_fill_viridis_c() +
+    labs(title = "Hexagram Treemap") +
+    theme_minimal()
+  
+  # 9. Emotion Detection in Headlines
+  # Use the previously created tidy_df (for unigrams) for emotion matching
+  emotions <- tidy_df %>%
+    inner_join(lexicon, by = "word") %>%
+    group_by(id = row_number()) %>%
+    summarize(across(Positive:Trust, sum, na.rm = TRUE))
+  
+  df_emotions <- df %>%
+    mutate(id = row_number()) %>%
+    left_join(emotions, by = "id")
+  
+  mean_emotions <- df_emotions %>%
+    summarize(across(Positive:Trust, mean, na.rm = TRUE))
+  
+  # 10. Emotion Visualizations
+  emotion_bar <- ggplot(mean_emotions %>% pivot_longer(cols = everything(), names_to = "Emotion", values_to = "Mean"), 
+                          aes(x = reorder(Emotion, -Mean), y = Mean, fill = Emotion)) +
+    geom_bar(stat = "identity") +
+    theme_minimal() +
+    labs(title = "Mean Emotion Scores", x = "Emotion", y = "Mean Score") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  # For a heatmap, we need to filter out rows with all zeros from df_emotions:
+  emotion_heat_data <- as.matrix(df_emotions %>% select(Positive:Trust))
+  # Use base heatmap (this will print directly, no object returned)
+  heatmap(emotion_heat_data, 
+          scale = "column", 
+          col = heat.colors(256), 
+          margins = c(5, 10), 
+          xlab = "Emotion", 
+          ylab = "Headline",
+          main = "Emotion Heatmap of Headlines")
+  
+  # Return all outputs as a list
+  return(list(
+    # Tables
+    word_freq_table = word_freq,
+    bigrams_table = bigrams,
+    trigrams_table = trigrams,
+    quadgrams_table = quadgrams,
+    pentagrams_table = pentagrams,
+    hexagrams_table = hexagrams,
+    mean_emotion_table = mean_emotions,
+    # Visualizations
+    unigram_bar_plot = unigram_bar,
+    trigram_bar_plot = trigram_bar,
+    quadgram_bar_plot = quadgram_bar,
+    trigram_sankey = trigram_sankey,
+    quadgram_sankey = quadgram_sankey,
+    pentagram_network = pentagram_network,
+    hexagram_treemap = hexagram_treemap,
+    emotion_bar_chart = emotion_bar
+    # Note: Word clouds and the heatmap are directly drawn to the graphics device.
+  ))
+}
+
+
+
+```
+
+
+
+```{r}
+
+bridge_results <- process_headlines_full(bridge_headlines_df, headline, nrc_cleaned)
+
+# View tables:
+head(bridge_results$word_freq_table)
+head(bridge_results$bigrams_table)
+head(bridge_results$trigrams_table)
+head(bridge_results$quadgrams_table)
+head(bridge_results$pentagrams_table)
+head(bridge_results$hexagrams_table)
+bridge_results$mean_emotion_table
+
+# Display plots (unigram bar chart, trigram/quadgram bar charts, emotion bar chart)
+print(bridge_results$unigram_bar_plot)
+print(bridge_results$trigram_bar_plot)
+print(bridge_results$quadgram_bar_plot)
+print(bridge_results$emotion_bar_chart)
+
+```
+
+
+```{r}
+
+bridge_results$trigram_sankey
+
+```
+
+
+```{r}
+
+bridge_results$quadgram_sankey
+
+```
+
+
+
+```{r}
+
+bridge_results$pentagram_network
+
+```
+
+
+
+```{r}
+
+bridge_results$hexagram_treemap
+
+```
+
