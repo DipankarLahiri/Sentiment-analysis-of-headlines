@@ -13,7 +13,6 @@ library(dplyr)
 library(readr)
 library(stringr)
 library(tidyr)
-library(dplyr)
 library(tm)
 library(SnowballC)
 library(textclean)
@@ -32,7 +31,6 @@ library(topicmodels)
 library(wdman)
 library(htmlwidgets)
 library(plotly)
-library(rvest)
 
 ```
 
