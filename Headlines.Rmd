@@ -32,6 +32,7 @@ library(topicmodels)
 library(wdman)
 library(htmlwidgets)
 library(plotly)
+library(rvest)
 
 ```
 
@@ -255,8 +256,6 @@ heatmap(heatmap_data,
 # SCRAPING HEADLINES FROM WEBSITE
 
 ```{r}
-
-library(rvest)
 
 base_url <- "https://thebridge.in/latest"
 all_headlines <- c()  
