@@ -30,7 +30,8 @@ library(networkD3)
 library(treemap)
 library(topicmodels)
 library(wdman)
-library (viridis)
+library(htmlwidgets)
+library(plotly)
 
 ```
 
@@ -302,7 +303,6 @@ process_headlines_full <- function(df, text_col, lexicon) {
   library(treemapify)
   library(reshape2)
   
-  # 1. Data Cleaning and Tokenization (Unigrams)
   df <- df %>% 
     rename(title = {{ text_col }}) %>%
     mutate(title = tolower(title))
@@ -316,7 +316,6 @@ process_headlines_full <- function(df, text_col, lexicon) {
   word_freq <- tidy_df %>% 
     count(word, sort = TRUE)
   
-  # 2. Generate N-grams
   bigrams <- df %>% 
     unnest_tokens(bigram, title, token = "ngrams", n = 2) %>%
     count(bigram, sort = TRUE)
@@ -337,9 +336,7 @@ process_headlines_full <- function(df, text_col, lexicon) {
     unnest_tokens(hexagram, title, token = "ngrams", n = 6) %>%
     count(hexagram, sort = TRUE)
   
-  # 3. Visualizations for Word Frequencies
-  ## 3a. Unigram Word Cloud (displayed on screen)
-  wordcloud(words = word_freq$word, 
+    wordcloud(words = word_freq$word, 
             freq = word_freq$n, 
             min.freq = 2, 
             max.words = 100, 
@@ -347,18 +344,15 @@ process_headlines_full <- function(df, text_col, lexicon) {
             rot.per = 0.3, 
             colors = brewer.pal(8, "Dark2"))
   
-  ## 3b. Bar Chart for Top Unigrams
-  unigram_bar <- ggplot(word_freq %>% slice_max(n, n = 15), 
+ unigram_bar <- ggplot(word_freq %>% slice_max(n, n = 15), 
                         aes(x = reorder(word, n), y = n)) +
     geom_col(fill = "steelblue") +
     coord_flip() +
     labs(title = "Top Words in Headlines", x = "Words", y = "Frequency") +
     theme_minimal()
   
-  # 4. Bigram Word Cloud
   wordcloud2::wordcloud2(bigrams %>% filter(n > 5), size = 0.5)
   
-  # 5. Bar Charts for Trigrams and Quadgrams
   plot_ngrams <- function(ngram_df, title_text) {
     ngram_df %>% 
       as_tibble() %>%  
@@ -374,11 +368,7 @@ process_headlines_full <- function(df, text_col, lexicon) {
   trigram_bar <- plot_ngrams(trigrams, "Top 20 Trigrams")
   quadgram_bar <- plot_ngrams(quadgrams, "Top 20 Quadgrams")
   
-  # 6. Sankey Networks for Trigrams and Quadgrams
-  # Helper function: create_sankey() splits the n-gram column into consecutive word links.
   create_sankey <- function(ngram_df, n_parts) {
-    # n_parts: number of words in the n-gram (e.g., 3 for trigrams, 4 for quadgrams)
-    # We'll create links for each consecutive pair.
     splits <- paste0("word", 1:n_parts)
     ngram_split <- ngram_df %>%
       separate(col = !!sym(names(ngram_df)[1]), into = splits, sep = " ", remove = FALSE) %>%
@@ -405,7 +395,6 @@ process_headlines_full <- function(df, text_col, lexicon) {
   trigram_sankey <- create_sankey(trigrams, 3)
   quadgram_sankey <- create_sankey(quadgrams, 4)
   
-  # 7. Network Graph for Pentagrams
   pentagram_graph <- function(penta_df) {
     penta_split <- penta_df %>%
       separate(pentagram, into = c("w1", "w2", "w3", "w4", "w5"), sep = " ", remove = FALSE) %>%
@@ -420,7 +409,6 @@ process_headlines_full <- function(df, text_col, lexicon) {
   
   pentagram_network <- pentagram_graph(pentagrams)
   
-  # 8. Treemap for Hexagrams using treemapify
   hexagram_treemap <- ggplot(hexagrams, aes(area = n, fill = n, label = hexagram)) +
     geom_treemap() +
     geom_treemap_text(colour = "white", place = "centre") +
@@ -428,8 +416,6 @@ process_headlines_full <- function(df, text_col, lexicon) {
     labs(title = "Hexagram Treemap") +
     theme_minimal()
   
-  # 9. Emotion Detection in Headlines
-  # Use the previously created tidy_df (for unigrams) for emotion matching
   emotions <- tidy_df %>%
     inner_join(lexicon, by = "word") %>%
     group_by(id = row_number()) %>%
@@ -442,7 +428,6 @@ process_headlines_full <- function(df, text_col, lexicon) {
   mean_emotions <- df_emotions %>%
     summarize(across(Positive:Trust, mean, na.rm = TRUE))
   
-  # 10. Emotion Visualizations
   emotion_bar <- ggplot(mean_emotions %>% pivot_longer(cols = everything(), names_to = "Emotion", values_to = "Mean"), 
                           aes(x = reorder(Emotion, -Mean), y = Mean, fill = Emotion)) +
     geom_bar(stat = "identity") +
@@ -450,20 +435,20 @@ process_headlines_full <- function(df, text_col, lexicon) {
     labs(title = "Mean Emotion Scores", x = "Emotion", y = "Mean Score") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
   
-  # For a heatmap, we need to filter out rows with all zeros from df_emotions:
-  emotion_heat_data <- as.matrix(df_emotions %>% select(Positive:Trust))
-  # Use base heatmap (this will print directly, no object returned)
-  heatmap(emotion_heat_data, 
-          scale = "column", 
-          col = heat.colors(256), 
-          margins = c(5, 10), 
-          xlab = "Emotion", 
-          ylab = "Headline",
-          main = "Emotion Heatmap of Headlines")
+  df_emotions_filtered <- df_emotions %>%
+  filter(rowSums(select(., Positive:Trust) != 0) > 0)
+
+emotion_heat_data <- as.matrix(df_emotions_filtered %>% select(Positive:Trust))
+
+heatmap(emotion_heat_data, 
+        scale = "column", 
+        col = heat.colors(256), 
+        margins = c(5, 10), 
+        xlab = "Emotion", 
+        ylab = "Headline",
+        main = "Emotion Heatmap of Headlines")
   
-  # Return all outputs as a list
   return(list(
-    # Tables
     word_freq_table = word_freq,
     bigrams_table = bigrams,
     trigrams_table = trigrams,
@@ -471,7 +456,6 @@ process_headlines_full <- function(df, text_col, lexicon) {
     pentagrams_table = pentagrams,
     hexagrams_table = hexagrams,
     mean_emotion_table = mean_emotions,
-    # Visualizations
     unigram_bar_plot = unigram_bar,
     trigram_bar_plot = trigram_bar,
     quadgram_bar_plot = quadgram_bar,
@@ -480,7 +464,6 @@ process_headlines_full <- function(df, text_col, lexicon) {
     pentagram_network = pentagram_network,
     hexagram_treemap = hexagram_treemap,
     emotion_bar_chart = emotion_bar
-    # Note: Word clouds and the heatmap are directly drawn to the graphics device.
   ))
 }
 
@@ -492,9 +475,9 @@ process_headlines_full <- function(df, text_col, lexicon) {
 
 ```{r}
 
+bridge_headlines_df <- read_csv("bridge_headlines.csv")
 bridge_results <- process_headlines_full(bridge_headlines_df, headline, nrc_cleaned)
 
-# View tables:
 head(bridge_results$word_freq_table)
 head(bridge_results$bigrams_table)
 head(bridge_results$trigrams_table)
@@ -503,7 +486,6 @@ head(bridge_results$pentagrams_table)
 head(bridge_results$hexagrams_table)
 bridge_results$mean_emotion_table
 
-# Display plots (unigram bar chart, trigram/quadgram bar charts, emotion bar chart)
 print(bridge_results$unigram_bar_plot)
 print(bridge_results$trigram_bar_plot)
 print(bridge_results$quadgram_bar_plot)
@@ -514,30 +496,77 @@ print(bridge_results$emotion_bar_chart)
 
 ```{r}
 
-bridge_results$trigram_sankey
+top_connections <- bridge_results$trigram_sankey$x$links %>%
+  dplyr::arrange(desc(value)) %>%
+  head(100)
+
+bridge_results$trigram_sankey$x$links <- top_connections
+
+links <- bridge_results$trigram_sankey$x$links
+
+unique_nodes <- unique(c(links$source, links$target))
+
+node_names <- bridge_results$trigram_sankey$x$nodes$name
+
+links$source_word <- node_names[links$source + 1]  
+links$target_word <- node_names[links$target + 1]  
+
+plot <- plot_ly(
+  type = "sankey",
+  node = list(
+    pad = 15,
+    thickness = 20,
+    line = list(color = "black", width = 0.5),
+    label = node_names  # Use words as node labels
+  ),
+  link = list(
+    source = match(links$source_word, node_names) - 1,  # Use the words' indices in node_names
+    target = match(links$target_word, node_names) - 1,  # Use the words' indices in node_names
+    value = links$value
+  )
+)
+
+plot
+
 
 ```
 
 
 ```{r}
 
-bridge_results$quadgram_sankey
+top_quadgram_connections <- bridge_results$quadgram_sankey$x$links %>%
+  dplyr::arrange(desc(value)) %>%
+  head(100)
+
+bridge_results$quadgram_sankey$x$links <- top_quadgram_connections
+
+links_quadgram <- bridge_results$quadgram_sankey$x$links
+
+node_names_quadgram <- bridge_results$quadgram_sankey$x$nodes$name
+
+links_quadgram$source_word <- node_names_quadgram[links_quadgram$source + 1]  # Adjust for zero-indexing
+links_quadgram$target_word <- node_names_quadgram[links_quadgram$target + 1]  # Adjust for zero-indexing
+
+plot_quadgram <- plot_ly(
+  type = "sankey",
+  node = list(
+    pad = 15,
+    thickness = 20,
+    line = list(color = "black", width = 0.5),
+    label = node_names_quadgram  
+  ),
+  link = list(
+    source = match(links_quadgram$source_word, node_names_quadgram) - 1,  
+    target = match(links_quadgram$target_word, node_names_quadgram) - 1,  
+    value = links_quadgram$value
+  )
+)
+
+plot_quadgram
+
 
 ```
 
 
-
-```{r}
-
-bridge_results$pentagram_network
-
-```
-
-
-
-```{r}
-
-bridge_results$hexagram_treemap
-
-```
+# bridge_headlines_df contains 73,158 unique pentagrams and 81,970 unique hexagrams, but none of them have a frequency count of more than 1.
 
