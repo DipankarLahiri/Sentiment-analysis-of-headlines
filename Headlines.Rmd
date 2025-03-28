@@ -44,7 +44,7 @@ library(plotly)
 
 # 3. Fake news headlines lean negative; sports headlines are overwhelmingly positive - Fake news shows a higher mean negative sentiment (0.21) than positive (0.17), with "fear" and "surprise" as dominant emotions. In contrast, sports headlines have a much stronger positive sentiment (0.22) than negative (0.11), with "trust" and "anticipation" being the most common emotions. "Joy" is the emotion least present in fake news headlines, "disgust" is the emotion least present in sports headlines.
 
-# 4. In fake news, "fear" is the emotion most linked with negativity, while "trust" and "anticipation" drive positive sentiment. "Surprise" stands out as the most independently occurring emotion, meaning many headlines evoke surprise without simultaneously expressing any other emotion or sentiment. This suggests that fake news headlines frequently rely on shock value to capture attention. In sports news, positive sentiment is dominant, with "joy" and "trust" frequently appearing together. However, unlike fake news, where specific emotions strongly define sentiment, sports headlines often frame positivity in a more neutral way. Many positive sports headlines do not evoke any of the eight classified emotions, suggesting a neutral use of optimism in sports reporting, where positivity is often conveyed without strong emotional framing.
+# 4. In fake news, "fear" is the emotion most linked with negativity, while "trust" and "anticipation" drive positive sentiment. "Surprise" stands out as the most independently occurring emotion, meaning many headlines evoke surprise without simultaneously expressing any other emotion or sentiment. This suggests that fake news headlines frequently rely on shock value to capture attention. In sports news, positive sentiment is dominant, with "joy" and "trust" frequently appearing together. However, unlike fake news, where specific emotions strongly define sentiment, sports headlines often frame positivity in a more neutral way. Many positive sports headlines do not evoke any of the eight classified emotions, suggesting that positivity is often conveyed without strong emotional framing in sports reporting.
 
 ---------------------------------
 
@@ -119,9 +119,10 @@ ggplot(top_words, aes(x = reorder(word, n), y = n)) +
   theme_minimal()
 
 ```
+
 # 'Video' and 'Trump' are the two most common words in the fake news headlines dataset, both words occurring at least four times as much as other common words. 'Video' is mostly used at the beginning or end of headlines, denoting that the article contains a video (Eg -  While Honoring Native American Code Talkers, Trump Called Elizabeth Warren ‘Pocahontas’ (VIDEO)). 'Tweets' is another word used in the same way - to denote the content type and source of the news - but this occurs ten times less than 'video', suggesting visual elements are ten times more common than tweets for fake news. 'Watch' is the third most common word, this is used as a substitute for 'video' (Eg -  WATCH: Nicolle Wallace Takes Trump To The Woodshed For Backing Pedophile Moore). 
 
-# The next few popular words are all related to US Presidential candidates - 'Obama', 'Hillary', 'Trumps', 'President', 'Clinton'. It is interesting that the only Presidential candidate to be mentioned more by first name than by surname is a woman, but this could be explained by the commonality of her surname with the President preceding Obama. 
+# The next few popular words are all related to US Presidential candidates - 'Obama', 'Hillary', 'Trumps', 'President', 'Clinton'. It is interesting that the only Presidential candidate to be mentioned more by first name than by surname is a woman, but this could be explained by the sameness of her surname with the President preceding Obama. 
 
 # Other common words occurring less than 1000 times include 'breaking' (another word like 'video' preceding headlines used to denote the type of news), 'black' and 'white'. While 'black' and 'white' both occur roughly the same number of times, 'black' is the more distinct connotator of race (Eg - Florida Student In Deep Sh*t After Trying To Sell Black Classmates Into Slavery On Craigslist). 'White', on the other hand, is a less racial term, more than a third of its occurences are in relation to the White House.  
 
@@ -143,7 +144,7 @@ ggplot(top_bigrams, aes(x = reorder(bigram, n), y = n)) +
 
 ```
 
-# Various versions of Donald Trump's name dominates two-word phrases in the fake news dataset. Some other common bigrams include governmental terms like 'White House', 'Supreme Court'; some US political leaders less prominent than Trump, Obama and Clinton - Bernie Sanders, Ted Cruz, Kellyanne Conway, Elizabeth Warren, Nancy Peloisi; and some politically significant terms like 'fake news', 'illegal alien' and 'Muslim refugees'. 'Fox News' is another common bigram, but the nature of this term's occurrences is best illustrated in the next section, when its mentions can be contrasted with a popular trigram, 'New York Times'.
+# Various versions of Donald Trump's name dominates two-word phrases in the fake news dataset. Some other common bigrams include governmental terms like 'White House', 'Supreme Court'; some second-tier US political leaders like Bernie Sanders, Ted Cruz, Kellyanne Conway, Elizabeth Warren, Nancy Peloisi; and some politically loaded terms like 'fake news', 'illegal alien' and 'Muslim refugees'. 'Fox News' is another common bigram, but the nature of this term's occurrences is best illustrated in the next section, when its mentions can be contrasted with a popular trigram, 'New York Times'.
 
 # THREE-WORD PHRASES - Bar Chart, Sankey Network
 
@@ -174,8 +175,9 @@ links_trigram <- data.frame(
 nodes_trigram <- data.frame(name = unique(c(links_trigram$source, links_trigram$target)))
 links_trigram$source <- match(links_trigram$source, nodes_trigram$name) - 1
 links_trigram$target <- match(links_trigram$target, nodes_trigram$name) - 1
-sankeyNetwork(Links = links_trigram, Nodes = nodes_trigram, Source = "source", Target = "target",
-              Value = "value", NodeID = "name", fontSize = 12, nodeWidth = 30)
+saveWidget(sankeyNetwork(Links = links_trigram, Nodes = nodes_trigram, Source = "source", Target = "target",
+                        Value = "value", NodeID = "name", fontSize = 12, nodeWidth = 30), 
+           "sankey_diagram.html", selfcontained = TRUE)
 
 ```
 
@@ -210,7 +212,7 @@ sankeyNetwork(Links = links_quadgram, Nodes = nodes_quadgram, Source = "source",
 
 ```
 
-# The most common phrases of four words or more in US fake news headlines all refer to someone handing someone's ass. As for non-expletive-laden terms, 'Make America great again' and 'Black Lives Matter terrorists' - two political terms used by Republican-leaning news websites - are the most common.
+# The most common phrases of four words or more in US fake news headlines all refer to someone handing someone's ass! As for non-expletive-laden terms, 'Make America great again' and 'Black Lives Matter terrorists' - two political terms used by Republican-leaning news websites - are the most common.
 
 # A few other clickbait phrases are evident here: 'Watch what happens when' turns out to be the most common phrase starting with 'watch'. 'Want you to see' is a variation of this phrase (Eg - Here’s The Ted Cruz Ad Starring An Adult Film Star He Doesn’t Want You To See (VIDEO)). 'You need to know' and 'need to know about' are variations of the same clickbait phrase that occurs around 25 times (Eg - TOP TEN Clinton Scandals That Wikileaks Exposed And That YOU Need To Know About).
 
@@ -555,7 +557,7 @@ print(bridge_results$emotion_bar_chart)
 
 # 'India', 'Asian' and 'World' are the most common words in this dataset, suggesting the importance of geographical entities in sports news. 'Team' (869 instances), Win (632 instances) and Gold (384 instances) are some common words which are not geographical entities or names of tournaments.
 
-# The most common n-grams are names of tournaments which also act as SEO keywords - 'Olympics 2024', 'Asian Games', 'World Cup', 'FIH Pro League'. The one exception to this is 'Satwik Chirag', the name of a badminton doubles pair which appears 198 times in the 1200 headlines. The only names of people which appear more in this set of headlines are 'Sindhu' (234 times), Lakshya (211 times) and Singh (275 times), the last being a surname which could be associated with several people. The four badminton players Satwik, Chirag, Sindhu and Lakshya, therefore, can be said to be the equivalent of US Presidential candidates from the fake news dataset, though none of them have as much of a lead over the others as Trump did over his rivals.
+# The most common n-grams are names of tournaments which also act as SEO keywords - 'Olympics 2024', 'Asian Games', 'World Cup', 'FIH Pro League'. The one exception to this is 'Satwik Chirag', the name of a badminton doubles pair which appears 198 times in the 1200 headlines. The only names of people which appear more in this set of headlines are 'Sindhu' (234 times), 'Lakshya' (211 times) and 'Singh' (275 times), the last being a surname which could be associated with several people. The four badminton players Satwik, Chirag, Sindhu and Lakshya, therefore, can be said to be the equivalent of US Presidential candidates from the fake news dataset, though none of them have as much of a lead over the others as Trump did over his rivals.
 
 # Emotion and sentiment scores: The positive sentiment (0.22) is present in this dataset far more than the negative sentiment (0.11). Trust (0.14) and anticipation (0.12) are the most common emotions. Disgust (0.02) and Sadness (0.05) are the least common emotions.
 
