@@ -146,7 +146,7 @@ ggplot(top_bigrams, aes(x = reorder(bigram, n), y = n)) +
 
 # Various versions of Donald Trump's name dominates two-word phrases in the fake news dataset. Some other common bigrams include governmental terms like 'White House', 'Supreme Court'; some second-tier US political leaders like Bernie Sanders, Ted Cruz, Kellyanne Conway, Elizabeth Warren, Nancy Peloisi; and some politically loaded terms like 'fake news', 'illegal alien' and 'Muslim refugees'. 'Fox News' is another common bigram, but the nature of this term's occurrences is best illustrated in the next section, when its mentions can be contrasted with a popular trigram, 'New York Times'.
 
-# THREE-WORD PHRASES - Bar Chart, Sankey Network
+# THREE-WORD PHRASES - Bar Chart, Sankey Diagram
 
 ```{r}
 
@@ -192,23 +192,6 @@ saveWidget(sankeyNetwork(Links = links_trigram, Nodes = nodes_trigram, Source = 
 ```{r}
 
 plot_ngrams(quadgrams, "Top 20 Quadgrams")
-
-sankey_data_quadgram <- quadgrams %>%
-  separate(quadgram, into = c("word1", "word2", "word3", "word4"), sep = " ", remove = FALSE) %>%
-  top_n(20, wt = n)
-
-links_quadgram <- data.frame(
-  source = c(sankey_data_quadgram$word1, sankey_data_quadgram$word2, sankey_data_quadgram$word3),
-  target = c(sankey_data_quadgram$word2, sankey_data_quadgram$word3, sankey_data_quadgram$word4),
-  value = rep(sankey_data_quadgram$n, 3)
-)
-
-nodes_quadgram <- data.frame(name = unique(c(links_quadgram$source, links_quadgram$target)))
-links_quadgram$source <- match(links_quadgram$source, nodes_quadgram$name) - 1
-links_quadgram$target <- match(links_quadgram$target, nodes_quadgram$name) - 1
-
-sankeyNetwork(Links = links_quadgram, Nodes = nodes_quadgram, Source = "source", Target = "target",
-              Value = "value", NodeID = "name", fontSize = 12, nodeWidth = 30)
 
 ```
 
@@ -257,7 +240,7 @@ treemap(hexagram_data,
 
 # 'Everything you need to know' is a common hexagram, as shown in the treemap. Examples show this is a term used by websites on both side of the political spectrum - 1> THIS ONE PICTURE Tells You Everything You Need To Know About The Muslim Refugee Invasion. 2> This Single Anecdote Tells You EVERYTHING You Need To Know About Trump Voters.
 
-## EMOTION DETECTION IN HEADLINES
+# EMOTION DETECTION IN HEADLINES
 
 ```{r}
 
@@ -563,73 +546,7 @@ print(bridge_results$emotion_bar_chart)
 
 # Heatmap: Joy, anticipation and trust are the most commonly co-occurring emotions in particular headlines, and these headlines have a positive sentiment (Eg - Indian women's hockey squad for Junior Asia Cup announced). Sadness and anger are two co-occurring emotions on the other end of the heatmap, and these have a negative sentiment (Eg - Kush Maini completes another successful Formula 1 test, inches closer to the Indian F1 dream). In this dataset, the positive sentiment is the most independently occurring, which means that there are many headlines here which are positive but do not have scores for any of the 8 emotions (Eg - India edge-out China to defend Asian Champions Trophy).
 
-# THREE-WORD PHRASES
+# LONGER PHRASES
 
-```{r}
-
-top_connections <- bridge_results$trigram_sankey$x$links %>%
-  dplyr::arrange(desc(value)) %>%
-  head(100)
-bridge_results$trigram_sankey$x$links <- top_connections
-links <- bridge_results$trigram_sankey$x$links
-unique_nodes <- unique(c(links$source, links$target))
-node_names <- bridge_results$trigram_sankey$x$nodes$name
-links$source_word <- node_names[links$source + 1]  
-links$target_word <- node_names[links$target + 1]  
-
-plot <- plot_ly(
-  type = "sankey",
-  node = list(
-    pad = 15,
-    thickness = 20,
-    line = list(color = "black", width = 0.5),
-    label = node_names  # Use words as node labels
-  ),
-  link = list(
-    source = match(links$source_word, node_names) - 1,  # Use the words' indices in node_names
-    target = match(links$target_word, node_names) - 1,  # Use the words' indices in node_names
-    value = links$value
-  )
-)
-
-plot
-
-```
-
-
-# FOUR-WORD PHRASES
-
-```{r}
-
-top_quadgram_connections <- bridge_results$quadgram_sankey$x$links %>%
-  dplyr::arrange(desc(value)) %>%
-  head(100)
-bridge_results$quadgram_sankey$x$links <- top_quadgram_connections
-links_quadgram <- bridge_results$quadgram_sankey$x$links
-node_names_quadgram <- bridge_results$quadgram_sankey$x$nodes$name
-links_quadgram$source_word <- node_names_quadgram[links_quadgram$source + 1]  
-links_quadgram$target_word <- node_names_quadgram[links_quadgram$target + 1]  
-
-plot_quadgram <- plot_ly(
-  type = "sankey",
-  node = list(
-    pad = 15,
-    thickness = 20,
-    line = list(color = "black", width = 0.5),
-    label = node_names_quadgram  
-  ),
-  link = list(
-    source = match(links_quadgram$source_word, node_names_quadgram) - 1,  
-    target = match(links_quadgram$target_word, node_names_quadgram) - 1,  
-    value = links_quadgram$value
-  )
-)
-
-plot_quadgram
-
-```
-
-# The above Sankey diagrams show the mapping between words in common phrases. Most of the words mapped here are part of tournament names or federation names. The one exception is Rohan Bopanna-Matthew Ebden, a tennis doubles duo.
-
-# This dataset contains 73,158 unique pentagrams and 81,970 unique hexagrams, but none of them have a frequency count of more than 1.
+# Sankey diagrams of common 3-4-word phrases show they are usually part of tournament names or federation names. The one exception is Rohan Bopanna-Matthew Ebden, a tennis doubles duo. This dataset contains 73,158 unique pentagrams and 81,970 unique hexagrams, but none of them have a frequency count of more than 1.
 
