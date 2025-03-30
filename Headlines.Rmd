@@ -1,11 +1,17 @@
 ---
-title: "News Headline Analysis"
+title: "News Headlines Analysis"
 author: "Dipankar Lahiri"
 date: "2025-03-26"
 output: html_document
 ---
 
-# This is an analysis of two datasets of news headlines to find their most common words, phrases, emotions and sentiments. The first dataset is a pre-existing collection of 23,481 fake political news headlines collected in 2017 from websites flagged as unreliable by Politifact, an US-based fact-checking organisation (Dataset link here -> https://www.kaggle.com/datasets/emineyetm/fake-news-detection-datasets). The second dataset is a collection of 1,200 headlines scraped in March 2025 from one particular website covering Indian sports news. The NRC Emotional Lexicon was used for emotion and sentiment analysis, a list which annotates 14,182 English words into two sentiments - positive, negative - and eight emotions - anger, fear, anticipation, trust, surprise, sadness, joy, and disgust. The differences in results for the two datasets offer some interesting insights into the nature of headlines for fake news and sports news.
+This is an analysis of **two datasets of news headlines** to find their **most common words, phrases, emotions and sentiments**. 
+
+The first dataset is a pre-existing collection of **23,481 fake political news headlines collected in 2017** from websites flagged as unreliable by Politifact, an US-based fact-checking organisation (Dataset link here -> https://www.kaggle.com/datasets/emineyetm/fake-news-detection-datasets). The second dataset is a collection of **1,200 headlines scraped in March 2025 from one particular website covering Indian sports news**. 
+
+The **NRC Emotional Lexicon** was used for emotion and sentiment analysis, a list which annotates 14,182 English words into **two sentiments - positive, negative - and eight emotions - anger, fear, anticipation, trust, surprise, sadness, joy, and disgust**. 
+
+The differences in results for the two datasets offer some interesting insights into the nature of headlines for fake news and sports news.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -36,21 +42,28 @@ library(plotly)
 
 ```
 
-# MAIN FINDINGS
+# Highlights of Findings
 
-# 1. Fake news headlines are dominated by political figures and media references. "Video" and "Trump" are the most frequent words, with heavy use of clickbait phrases like "You won’t believe" and "The truth about." Political bigrams and trigrams such as "White House," "Black Lives Matter," and "Fox News" appear frequently. Sports news headlines are dominated by geographical entities and competition names. The most common words include "India," "Asian," and "World," with frequent mentions of tournaments ("Olympics 2024," "Asian Games") and top athletes. Unlike fake news, clickbait phrases are absent. 
+1. Fake news headlines are dominated by political figures and media references. "Video" and "Trump" are the most frequent words, with heavy use of clickbait phrases like "You won’t believe" and "The truth about." Political bigrams and trigrams such as "White House," "Black Lives Matter," and "Fox News" appear frequently. 
+Sports news headlines are dominated by geographical entities and competition names. The most common words include "India," "Asian," and "World," with frequent mentions of tournaments ("Olympics 2024," "Asian Games") and top athletes. Unlike fake news, clickbait phrases are absent. 
 
-# 2. Fake news headlines often recycle political narratives, with some five- and six-word phrases recurring multiple times (e.g., "Bill Clinton is a rapist"). Sports headlines, while containing a large number of unique pentagrams and hexagrams, have almost no repeated multi-word phrases.
+2. Fake news headlines often recycle political narratives, with some five- and six-word phrases recurring multiple times (e.g., "Bill Clinton is a rapist"). 
 
-# 3. Fake news headlines lean negative; sports headlines are overwhelmingly positive - Fake news shows a higher mean negative sentiment (0.21) than positive (0.17), with "fear" and "surprise" as dominant emotions. In contrast, sports headlines have a much stronger positive sentiment (0.22) than negative (0.11), with "trust" and "anticipation" being the most common emotions. "Joy" is the emotion least present in fake news headlines, "disgust" is the emotion least present in sports headlines.
+Sports headlines, while containing a large number of unique pentagrams and hexagrams, have almost no repeated multi-word phrases.
 
-# 4. In fake news, "fear" is the emotion most linked with negativity, while "trust" and "anticipation" drive positive sentiment. "Surprise" stands out as the most independently occurring emotion, meaning many headlines evoke surprise without simultaneously expressing any other emotion or sentiment. This suggests that fake news headlines frequently rely on shock value to capture attention. In sports news, positive sentiment is dominant, with "joy" and "trust" frequently appearing together. However, unlike fake news, where specific emotions strongly define sentiment, sports headlines often frame positivity in a more neutral way. Many positive sports headlines do not evoke any of the eight classified emotions, suggesting that positivity is often conveyed without strong emotional framing in sports reporting.
+3. Fake news headlines lean negative; sports headlines are overwhelmingly positive - Fake news shows a higher mean negative sentiment (0.21) than positive (0.17), with "fear" and "surprise" as dominant emotions. In contrast, sports headlines have a much stronger positive sentiment (0.22) than negative (0.11), with "trust" and "anticipation" being the most common emotions. 
+
+"Joy" is the emotion least present in fake news headlines, "disgust" is the emotion least present in sports headlines.
+
+4. In fake news, "fear" is the emotion most linked with negativity, while "trust" and "anticipation" drive positive sentiment. "Surprise" stands out as the most independently occurring emotion, meaning many headlines evoke surprise without simultaneously expressing any other emotion or sentiment. This suggests that fake news headlines frequently rely on shock value to capture attention. 
+
+In sports news, positive sentiment is dominant, with "joy" and "trust" frequently appearing together. However, many positive sports headlines do not evoke any of the eight classified emotions, suggesting that positivity is often conveyed without strong emotional framing in sports reporting.
 
 ---------------------------------
 
-# FAKE NEWS DATASET
+## Fake News Dataset
 
-# Cleaning headlines for analysis, finding frequencies of words and word combinations.
+Cleaning headlines for analysis, finding frequencies of words and word combinations.
 
 ```{r}
 
@@ -95,9 +108,9 @@ head(hexagrams, 10)
 
 ```
 
-# WORD FREQUENCY VISUALISATIONS
+### Word Frequency Visualisations
 
-# SINGLE WORDS - Word Cloud, Bar chart
+##### Single Words - Word Cloud, Bar chart
 
 ```{r}
 
@@ -120,13 +133,21 @@ ggplot(top_words, aes(x = reorder(word, n), y = n)) +
 
 ```
 
-# 'Video' and 'Trump' are the two most common words in the fake news headlines dataset, both words occurring at least four times as much as other common words. 'Video' is mostly used at the beginning or end of headlines, denoting that the article contains a video (Eg -  While Honoring Native American Code Talkers, Trump Called Elizabeth Warren ‘Pocahontas’ (VIDEO)). 'Tweets' is another word used in the same way - to denote the content type and source of the news - but this occurs ten times less than 'video', suggesting visual elements are ten times more common than tweets for fake news. 'Watch' is the third most common word, this is used as a substitute for 'video' (Eg -  WATCH: Nicolle Wallace Takes Trump To The Woodshed For Backing Pedophile Moore). 
+- 'Video' and 'Trump' are the two most common words in the fake news headlines dataset, both words occurring at least four times as much as other common words. 
 
-# The next few popular words are all related to US Presidential candidates - 'Obama', 'Hillary', 'Trumps', 'President', 'Clinton'. It is interesting that the only Presidential candidate to be mentioned more by first name than by surname is a woman, but this could be explained by the sameness of her surname with the President preceding Obama. 
+'Video' is mostly used at the beginning or end of headlines, denoting that the article contains a video (Eg -  While Honoring Native American Code Talkers, Trump Called Elizabeth Warren ‘Pocahontas’ (VIDEO)). 'Tweets' is another word used in the same way - to denote the content type and source of the news - but this occurs ten times less than 'video', suggesting visual elements are ten times more common than tweets for fake news. 
 
-# Other common words occurring less than 1000 times include 'breaking' (another word like 'video' preceding headlines used to denote the type of news), 'black' and 'white'. While 'black' and 'white' both occur roughly the same number of times, 'black' is the more distinct connotator of race (Eg - Florida Student In Deep Sh*t After Trying To Sell Black Classmates Into Slavery On Craigslist). 'White', on the other hand, is a less racial term, more than a third of its occurences are in relation to the White House.  
+'Watch' is the third most common word, this is used as a substitute for 'video' (Eg -  WATCH: Nicolle Wallace Takes Trump To The Woodshed For Backing Pedophile Moore). 
 
-# TWO-WORD PHRASES - Word Cloud, Bar Chart
+- The next few popular words are all related to US Presidential candidates - 'Obama', 'Hillary', 'Trumps', 'President', 'Clinton'. 
+
+It is interesting that the only Presidential candidate to be mentioned more by first name than by surname is a woman, but this could be explained by the sameness of her surname with the President preceding Obama. 
+
+- Other common words occurring less than 1000 times include 'breaking' (another word like 'video' preceding headlines used to denote the type of news), 'black' and 'white'. 
+
+While 'black' and 'white' both occur roughly the same number of times, 'black' is the more distinct connotator of race (Eg - Florida Student In Deep Sh*t After Trying To Sell Black Classmates Into Slavery On Craigslist). 'White', on the other hand, is a less racial term, more than a third of its occurences are in relation to the White House.  
+
+##### Two-Word Phrases - Word Cloud, Bar Chart
 
 ``` {r}
 
@@ -144,9 +165,11 @@ ggplot(top_bigrams, aes(x = reorder(bigram, n), y = n)) +
 
 ```
 
-# Various versions of Donald Trump's name dominates two-word phrases in the fake news dataset. Some other common bigrams include governmental terms like 'White House', 'Supreme Court'; some second-tier US political leaders like Bernie Sanders, Ted Cruz, Kellyanne Conway, Elizabeth Warren, Nancy Peloisi; and some politically loaded terms like 'fake news', 'illegal alien' and 'Muslim refugees'. 'Fox News' is another common bigram, but the nature of this term's occurrences is best illustrated in the next section, when its mentions can be contrasted with a popular trigram, 'New York Times'.
+Various versions of Donald Trump's name dominates two-word phrases in the fake news dataset. 
 
-# THREE-WORD PHRASES - Bar Chart, Sankey Diagram
+Some other common bigrams include governmental terms like 'White House', 'Supreme Court'; some second-tier US political leaders like Bernie Sanders, Ted Cruz, Kellyanne Conway, Elizabeth Warren, Nancy Peloisi; and some politically loaded terms like 'fake news', 'illegal alien' and 'Muslim refugees'. 
+
+##### Three-Word Phrases - Bar Chart, Sankey Diagram
 
 ```{r}
 
@@ -181,13 +204,17 @@ saveWidget(sankeyNetwork(Links = links_trigram, Nodes = nodes_trigram, Source = 
 
 ```
 
-# The most common trigram is 'Black Lives Matter'. The BLM social movement was at its peak during the time of this dataset curation. Notably, this phrase is used as a character in headlines instead of as an SEO keyword (Eg -  Mark Zuckerberg Stands Strong With Black Lives Matter – Reprimands Racist Facebook Employees). The second most common trigram is an SEO keyword, 'boiler room ep', used by one particular website.
+- The most common trigram is 'Black Lives Matter'. The BLM social movement was at its peak during the time of this dataset curation. Notably, this phrase is used as a character in headlines instead of as an SEO keyword (Eg -  Mark Zuckerberg Stands Strong With Black Lives Matter – Reprimands Racist Facebook Employees). The second most common trigram is an SEO keyword, 'boiler room ep', used by one particular website.
 
-# 'You won't believe' and 'The truth about' turn out to be popular three-word clickbait phrases in fake news headlines. 'You won't believe' occurs 75 times in the dataset (Eg - Susan Rice Refuses To Testify Before The Senate…You Won’t Believe The Reason Why!). Some headlines with this phrase often contain multiple clickbait elements (Eg - YOU WON’T BELIEVE THIS: WATCH DONNA BRAZILE Defend Her Decision to Cheat by Leaking Questions to Hillary [Video]).
+- 'You won't believe' and 'The truth about' turn out to be popular three-word clickbait phrases in fake news headlines. 'You won't believe' occurs 75 times in the dataset (Eg - Susan Rice Refuses To Testify Before The Senate…You Won’t Believe The Reason Why!). 
 
-# 'CNN' (more than 500 mentions), 'Fox News' (more than 200 mentions) and 'New York Times' (more than 50 mentions) are some popular news companies to find frequent mention, with the headlines usually mocking the companies. Examples: 1> ‘Man Bites Dog’: New York Times Does Some Actual Journalism. 2> Fox News Frantically Tries To Cover Up Trump’s 13th Golf Trip And Absolutely NOBODY Is Buying It. CNN, on the other hand, finds favourable mention several times (Eg - CNN Just Went After Trump For His Latest Meltdown, And It Was Unbelievably BRILLIANT (VIDEO)).
+Some headlines with this phrase often contain multiple clickbait elements (Eg - YOU WON’T BELIEVE THIS: WATCH DONNA BRAZILE Defend Her Decision to Cheat by Leaking Questions to Hillary [Video]).
 
-# FOUR-WORD PHRASES
+- 'CNN' (more than 500 mentions), 'Fox News' (more than 200 mentions) and 'New York Times' (more than 50 mentions) are some popular news companies to find frequent mention, with the headlines usually mocking the companies. Examples: 1> ‘Man Bites Dog’: New York Times Does Some Actual Journalism. 2> Fox News Frantically Tries To Cover Up Trump’s 13th Golf Trip And Absolutely NOBODY Is Buying It. 
+
+CNN, on the other hand, finds favourable mention several times (Eg - CNN Just Went After Trump For His Latest Meltdown, And It Was Unbelievably BRILLIANT (VIDEO)).
+
+##### Four-Word Phrases - Bar Chart
 
 ```{r}
 
@@ -195,11 +222,15 @@ plot_ngrams(quadgrams, "Top 20 Quadgrams")
 
 ```
 
-# The most common phrases of four words or more in US fake news headlines all refer to someone handing someone's ass! As for non-expletive-laden terms, 'Make America great again' and 'Black Lives Matter terrorists' - two political terms used by Republican-leaning news websites - are the most common.
+The most common phrases of four words or more in US fake news headlines all refer to someone handing someone's ass! 
 
-# A few other clickbait phrases are evident here: 'Watch what happens when' turns out to be the most common phrase starting with 'watch'. 'Want you to see' is a variation of this phrase (Eg - Here’s The Ted Cruz Ad Starring An Adult Film Star He Doesn’t Want You To See (VIDEO)). 'You need to know' and 'need to know about' are variations of the same clickbait phrase that occurs around 25 times (Eg - TOP TEN Clinton Scandals That Wikileaks Exposed And That YOU Need To Know About).
+As for non-expletive-laden terms, 'Make America great again' and 'Black Lives Matter terrorists' - two political terms used by Republican-leaning news websites - are the most common.
 
-# FIVE-WORD PHRASES - Network Graph
+A few other clickbait phrases are evident here. 'Watch what happens when' turns out to be the most common phrase starting with 'watch'. 'Want you to see' is a variation of this phrase (Eg - Here’s The Ted Cruz Ad Starring An Adult Film Star He Doesn’t Want You To See (VIDEO)). 
+
+'You need to know' and 'need to know about' are variations of the same clickbait phrase that occurs around 25 times (Eg - TOP TEN Clinton Scandals That Wikileaks Exposed And That YOU Need To Know About).
+
+##### Five-Word Phrases - Network Graph
 
 ```{r}
 
@@ -217,9 +248,11 @@ ggraph(graph, layout = "fr") +
 
 ```
 
-# The number of occurrences go down as we move into pentagrams and hexagrams, but the fact that some 5-word or 6-word phrases occur multiple times in headlines at all could merit further investigation. A few curious examples shown in the above network graph are 'NFL players disrespecting our flag' (6 times) and 'Bill Clinton is a rapist' (8 times). Examples show these phrases can be seen as having gained currency as recognisable entities (like the BLM social movement) for a short while but then died down.
+The number of occurrences go down as we move into pentagrams and hexagrams, but the fact that some 5-word or 6-word phrases occur multiple times in headlines at all could merit further investigation. 
 
-# SIX-WORD PHRASES - Treemap
+A few curious examples shown in the above network graph are 'NFL players disrespecting our flag' (6 times) and 'Bill Clinton is a rapist' (8 times). These phrases can be seen as having gained currency as recognisable entities (like the BLM social movement) for a short while but then died down.
+
+##### Six-Word Phrases - Treemap
 
 ```{r}
 
@@ -238,9 +271,9 @@ treemap(hexagram_data,
 
 ```
 
-# 'Everything you need to know' is a common hexagram, as shown in the treemap. Examples show this is a term used by websites on both side of the political spectrum - 1> THIS ONE PICTURE Tells You Everything You Need To Know About The Muslim Refugee Invasion. 2> This Single Anecdote Tells You EVERYTHING You Need To Know About Trump Voters.
+'Everything you need to know' is a common hexagram, as shown in the treemap. Examples show this is a term used by websites on both side of the political spectrum - 1> THIS ONE PICTURE Tells You Everything You Need To Know About The Muslim Refugee Invasion. 2> This Single Anecdote Tells You EVERYTHING You Need To Know About Trump Voters.
 
-# EMOTION DETECTION IN HEADLINES
+### Emotion Detection in Headlines
 
 ```{r}
 
@@ -265,9 +298,11 @@ headlines_emotions_df %>%
 
 ```
 
-# The mean negative sentiment of the fake news dataset is 0.21 and the mean positive sentiment is 0.17, suggesting the negative sentiment is contained more. Surprise (0.18) and fear (0.16) are the emotions most represented. Joy (0.07) is the least represented emotion.
+The mean negative sentiment of the fake news dataset is 0.21 and the mean positive sentiment is 0.17, suggesting the negative sentiment is contained more. 
 
-# EMOTION VISUALISATION
+Surprise (0.18) and fear (0.16) are the emotions most represented. Joy (0.07) is the least represented emotion.
+
+### Emotion Visualisation
 
 ```{r}
 
@@ -296,11 +331,17 @@ heatmap(heatmap_data,
 
 ```
 
-# The heatmap shows how sentiments and emotions often co-occur in the headlines. Trust and anticipation are the most common emotions co-occurring with the positive sentiment (Eg - Mormon tabernacle choir singer quits because singing for Trump would be like singing for Hitler). Fear is the most common emotion co-occurring with the negative sentiment (Eg - Watch: Trump minion makes huge slip about who will pay for infrastructure spending). Surprise is the emotion occurring most independently, or in other words, it has positive scores for the most headlines which do not have scores for any other emotion or sentiment (Eg - Trump gets trashed for justifying Don Jr’s collusion with Russia: ‘That’s politics!’).
+The heatmap shows how sentiments and emotions often co-occur in the headlines. 
+
+Trust and anticipation are the most common emotions co-occurring with the positive sentiment (Eg - Mormon tabernacle choir singer quits because singing for Trump would be like singing for Hitler). 
+
+Fear is the most common emotion co-occurring with the negative sentiment (Eg - Watch: Trump minion makes huge slip about who will pay for infrastructure spending). 
+
+Surprise is the emotion occurring most independently, or in other words, it has positive scores for the most headlines which do not have scores for any other emotion or sentiment (Eg - Trump gets trashed for justifying Don Jr’s collusion with Russia: ‘That’s politics!’).
 
 ---------------------------------
 
-# SCRAPING HEADLINES FROM WEBSITE 'THE BRIDGE'
+## Scraping Headlines from 'The Bridge' Website
 
 ```{r}
 
@@ -332,7 +373,7 @@ bridge_headlines_df <- data.frame(headline = all_headlines)
 
 ```
 
-# CREATING A FUNCTION FOR AUTOMATION OF ANALYSIS
+## Creating Function for Automation of Headline Analysis
 
 ```{r}
 
@@ -516,7 +557,7 @@ heatmap(emotion_heat_data,
 
 ```
 
-# RUNNING THE ANALYSIS FUNCTION ON 'THE BRIDGE' DATASET
+## Running the Analysis Function on 'The Bridge' Dataset
 
 ```{r}
 
@@ -538,15 +579,22 @@ print(bridge_results$emotion_bar_chart)
 
 ```
 
-# 'India', 'Asian' and 'World' are the most common words in this dataset, suggesting the importance of geographical entities in sports news. 'Team' (869 instances), Win (632 instances) and Gold (384 instances) are some common words which are not geographical entities or names of tournaments.
+## Results - 'The Bridge'
 
-# The most common n-grams are names of tournaments which also act as SEO keywords - 'Olympics 2024', 'Asian Games', 'World Cup', 'FIH Pro League'. The one exception to this is 'Satwik Chirag', the name of a badminton doubles pair which appears 198 times in the 1200 headlines. The only names of people which appear more in this set of headlines are 'Sindhu' (234 times), 'Lakshya' (211 times) and 'Singh' (275 times), the last being a surname which could be associated with several people. The four badminton players Satwik, Chirag, Sindhu and Lakshya, therefore, can be said to be the equivalent of US Presidential candidates from the fake news dataset, though none of them have as much of a lead over the others as Trump did over his rivals.
+**Common Words and Phrases**
 
-# Emotion and sentiment scores: The positive sentiment (0.22) is present in this dataset far more than the negative sentiment (0.11). Trust (0.14) and anticipation (0.12) are the most common emotions. Disgust (0.02) and Sadness (0.05) are the least common emotions.
+'India', 'Asian' and 'World' are the most common words in this dataset, suggesting the importance of geographical entities in sports news. 'Team' (869 instances), Win (632 instances) and Gold (384 instances) are some common words which are not geographical entities or names of tournaments.
 
-# Heatmap: Joy, anticipation and trust are the most commonly co-occurring emotions in particular headlines, and these headlines have a positive sentiment (Eg - Indian women's hockey squad for Junior Asia Cup announced). Sadness and anger are two co-occurring emotions on the other end of the heatmap, and these have a negative sentiment (Eg - Kush Maini completes another successful Formula 1 test, inches closer to the Indian F1 dream). In this dataset, the positive sentiment is the most independently occurring, which means that there are many headlines here which are positive but do not have scores for any of the 8 emotions (Eg - India edge-out China to defend Asian Champions Trophy).
+The most common n-grams are names of tournaments, which also act as SEO keywords - 'Olympics 2024', 'Asian Games', 'World Cup', 'FIH Pro League'. 
 
-# LONGER PHRASES
+The one exception to this is 'Satwik Chirag', the name of a badminton doubles pair which appears 198 times in the 1200 headlines. The only names of people which appear more in this set of headlines are 'Sindhu' (234 times), 'Lakshya' (211 times) and 'Singh' (275 times), the last being a surname which could be associated with several people. The four badminton players Satwik, Chirag, Sindhu and Lakshya, therefore, can be said to be the equivalent of US Presidential candidates from the fake news dataset, though none of them have as much of a lead over the others as Trump did over his rivals.
 
-# Sankey diagrams of common 3-4-word phrases show they are usually part of tournament names or federation names. The one exception is Rohan Bopanna-Matthew Ebden, a tennis doubles duo. This dataset contains 73,158 unique pentagrams and 81,970 unique hexagrams, but none of them have a frequency count of more than 1.
+Sankey diagrams of common 3-4-word phrases show they are usually part of tournament names or federation names. The one exception is Rohan Bopanna-Matthew Ebden, a tennis doubles duo. This dataset contains 73,158 unique pentagrams and 81,970 unique hexagrams, but none of them have a frequency count of more than 1.
 
+**Emotion and sentiment scores** 
+
+The positive sentiment (0.22) is present in this dataset far more than the negative sentiment (0.11). Trust (0.14) and anticipation (0.12) are the most common emotions. Disgust (0.02) and Sadness (0.05) are the least common emotions.
+
+Joy, anticipation and trust are the most commonly co-occurring emotions in particular headlines, and these headlines have a positive sentiment (Eg - Indian women's hockey squad for Junior Asia Cup announced). Sadness and anger are two co-occurring emotions on the other end of the heatmap, and these have a negative sentiment (Eg - Kush Maini completes another successful Formula 1 test, inches closer to the Indian F1 dream). 
+
+In this dataset, the positive sentiment is the most independently occurring, which means that there are many headlines here which are positive but do not have scores for any of the 8 emotions (Eg - India edge-out China to defend Asian Champions Trophy).
