@@ -44,20 +44,25 @@ library(plotly)
 
 # Highlights of Findings
 
-1. Fake news headlines are dominated by political figures and media references. "Video" and "Trump" are the most frequent words, with heavy use of clickbait phrases like "You won’t believe" and "The truth about." Political bigrams and trigrams such as "White House," "Black Lives Matter," and "Fox News" appear frequently. 
-Sports news headlines are dominated by geographical entities and competition names. The most common words include "India," "Asian," and "World," with frequent mentions of tournaments ("Olympics 2024," "Asian Games") and top athletes. Unlike fake news, clickbait phrases are absent. 
+1. Fake news headlines are dominated by political figures and media references. "Video" and "Trump" are the most frequent words, with heavy use of clickbait phrases like "You won’t believe" and "The truth about." Political bigrams and trigrams such as "White House," "Black Lives Matter," and "Fox News" appear frequently.  
 
-2. Fake news headlines often recycle political narratives, with some five- and six-word phrases recurring multiple times (e.g., "Bill Clinton is a rapist"). 
+   Sports news headlines are dominated by geographical entities and competition names. The most common words include "India," "Asian," and "World," with frequent mentions of tournaments ("Olympics 2024," "Asian Games") and top athletes. Unlike fake news, clickbait phrases are absent.  
 
-Sports headlines, while containing a large number of unique pentagrams and hexagrams, have almost no repeated multi-word phrases.
+2. Fake news headlines often recycle political narratives, with some five- and six-word phrases recurring multiple times (e.g., "Bill Clinton is a rapist").  
 
-3. Fake news headlines lean negative; sports headlines are overwhelmingly positive - Fake news shows a higher mean negative sentiment (0.21) than positive (0.17), with "fear" and "surprise" as dominant emotions. In contrast, sports headlines have a much stronger positive sentiment (0.22) than negative (0.11), with "trust" and "anticipation" being the most common emotions. 
+   Sports headlines, while containing a large number of unique pentagrams and hexagrams, have almost no repeated multi-word phrases.  
 
-"Joy" is the emotion least present in fake news headlines, "disgust" is the emotion least present in sports headlines.
+3. Fake news headlines lean negative; sports headlines are overwhelmingly positive.  
+   
+   Fake news shows a higher mean negative sentiment (0.21) than positive (0.17), with "fear" and "surprise" as dominant emotions. In contrast, sports headlines have a much stronger positive sentiment (0.22) than negative (0.11), with "trust" and "anticipation" being the most common emotions.  
 
-4. In fake news, "fear" is the emotion most linked with negativity, while "trust" and "anticipation" drive positive sentiment. "Surprise" stands out as the most independently occurring emotion, meaning many headlines evoke surprise without simultaneously expressing any other emotion or sentiment. This suggests that fake news headlines frequently rely on shock value to capture attention. 
+   "Joy" is the emotion least present in fake news headlines, "disgust" is the emotion least present in sports headlines.  
 
-In sports news, positive sentiment is dominant, with "joy" and "trust" frequently appearing together. However, many positive sports headlines do not evoke any of the eight classified emotions, suggesting that positivity is often conveyed without strong emotional framing in sports reporting.
+4. In fake news, "fear" is the emotion most linked with negativity, while "trust" and "anticipation" drive positive sentiment.  
+   
+   "Surprise" stands out as the most independently occurring emotion, meaning many headlines evoke surprise without simultaneously expressing any other emotion or sentiment. This suggests that fake news headlines frequently rely on shock value to capture attention.  
+
+   In sports news, positive sentiment is dominant, with "joy" and "trust" frequently appearing together. However, many positive sports headlines do not evoke any of the eight classified emotions, suggesting that positivity is often conveyed without strong emotional framing in sports reporting.  
 
 ---------------------------------
 
@@ -135,17 +140,17 @@ ggplot(top_words, aes(x = reorder(word, n), y = n)) +
 
 - 'Video' and 'Trump' are the two most common words in the fake news headlines dataset, both words occurring at least four times as much as other common words. 
 
-'Video' is mostly used at the beginning or end of headlines, denoting that the article contains a video (Eg -  While Honoring Native American Code Talkers, Trump Called Elizabeth Warren ‘Pocahontas’ (VIDEO)). 'Tweets' is another word used in the same way - to denote the content type and source of the news - but this occurs ten times less than 'video', suggesting visual elements are ten times more common than tweets for fake news. 
+   'Video' is mostly used at the beginning or end of headlines, denoting that the article contains a video (Eg -  While Honoring Native American Code Talkers, Trump Called Elizabeth Warren ‘Pocahontas’ (VIDEO)). 'Tweets' is another word used in the same way - to denote the content type and source of the news - but this occurs ten times less than 'video', suggesting visual elements are ten times more common than tweets for fake news. 
 
-'Watch' is the third most common word, this is used as a substitute for 'video' (Eg -  WATCH: Nicolle Wallace Takes Trump To The Woodshed For Backing Pedophile Moore). 
+   'Watch' is the third most common word, this is used as a substitute for 'video' (Eg -  WATCH: Nicolle Wallace Takes Trump To The Woodshed For Backing Pedophile Moore). 
 
 - The next few popular words are all related to US Presidential candidates - 'Obama', 'Hillary', 'Trumps', 'President', 'Clinton'. 
 
-It is interesting that the only Presidential candidate to be mentioned more by first name than by surname is a woman, but this could be explained by the sameness of her surname with the President preceding Obama. 
+  It is interesting that the only Presidential candidate to be mentioned more by first name than by surname is a woman, but this could be explained by the sameness of her surname with the President preceding Obama. 
 
 - Other common words occurring less than 1000 times include 'breaking' (another word like 'video' preceding headlines used to denote the type of news), 'black' and 'white'. 
 
-While 'black' and 'white' both occur roughly the same number of times, 'black' is the more distinct connotator of race (Eg - Florida Student In Deep Sh*t After Trying To Sell Black Classmates Into Slavery On Craigslist). 'White', on the other hand, is a less racial term, more than a third of its occurences are in relation to the White House.  
+  While 'black' and 'white' both occur roughly the same number of times, 'black' is the more distinct connotator of race (Eg - Florida Student In Deep Sh*t After Trying To Sell Black Classmates Into Slavery On Craigslist). 'White', on the other hand, is a less racial term, more than a third of its occurences are in relation to the White House.  
 
 ##### Two-Word Phrases - Word Cloud, Bar Chart
 
@@ -208,11 +213,11 @@ saveWidget(sankeyNetwork(Links = links_trigram, Nodes = nodes_trigram, Source = 
 
 - 'You won't believe' and 'The truth about' turn out to be popular three-word clickbait phrases in fake news headlines. 'You won't believe' occurs 75 times in the dataset (Eg - Susan Rice Refuses To Testify Before The Senate…You Won’t Believe The Reason Why!). 
 
-Some headlines with this phrase often contain multiple clickbait elements (Eg - YOU WON’T BELIEVE THIS: WATCH DONNA BRAZILE Defend Her Decision to Cheat by Leaking Questions to Hillary [Video]).
+  Some headlines with this phrase often contain multiple clickbait elements (Eg - YOU WON’T BELIEVE THIS: WATCH DONNA BRAZILE Defend Her Decision to Cheat by Leaking Questions to Hillary [Video]).
 
 - 'CNN' (more than 500 mentions), 'Fox News' (more than 200 mentions) and 'New York Times' (more than 50 mentions) are some popular news companies to find frequent mention, with the headlines usually mocking the companies. Examples: 1> ‘Man Bites Dog’: New York Times Does Some Actual Journalism. 2> Fox News Frantically Tries To Cover Up Trump’s 13th Golf Trip And Absolutely NOBODY Is Buying It. 
 
-CNN, on the other hand, finds favourable mention several times (Eg - CNN Just Went After Trump For His Latest Meltdown, And It Was Unbelievably BRILLIANT (VIDEO)).
+  CNN, on the other hand, finds favourable mention several times (Eg - CNN Just Went After Trump For His Latest Meltdown, And It Was Unbelievably BRILLIANT (VIDEO)).
 
 ##### Four-Word Phrases - Bar Chart
 
