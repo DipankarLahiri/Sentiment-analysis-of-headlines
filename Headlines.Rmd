@@ -7,7 +7,7 @@ output: html_document
 
 This is an analysis of **two datasets of news headlines** to find their **most common words, phrases, emotions and sentiments**. 
 
-The first dataset is a pre-existing collection of **23,481 fake political news headlines collected in 2017** from websites flagged as unreliable by Politifact, an US-based fact-checking organisation (Dataset link here -> https://www.kaggle.com/datasets/emineyetm/fake-news-detection-datasets). The second dataset is a collection of **1,200 headlines scraped in March 2025 from one particular website covering Indian sports news**. 
+The first dataset is a pre-existing collection of **23,481 fake political news headlines collected in 2017** from websites flagged as unreliable by Politifact, an US-based fact-checking organisation (Dataset link here -> https://www.kaggle.com/datasets/emineyetm/fake-news-detection-datasets). The second dataset is a collection of **1,200 headlines scraped in March 2025 from one particular website covering Indian sports news** (Website link here -> https://thebridge.in/). 
 
 The **NRC Emotional Lexicon** was used for emotion and sentiment analysis, a list which annotates 14,182 English words into **two sentiments - positive, negative - and eight emotions - anger, fear, anticipation, trust, surprise, sadness, joy, and disgust**. 
 
@@ -115,7 +115,7 @@ head(hexagrams, 10)
 
 ### Word Frequency Visualisations
 
-##### Single Words - Word Cloud, Bar chart
+##### Single Words
 
 ```{r, echo=FALSE}
 
@@ -152,7 +152,7 @@ ggplot(top_words, aes(x = reorder(word, n), y = n)) +
 
   While 'black' and 'white' both occur roughly the same number of times, 'black' is the more distinct connotator of race (Eg - Florida Student In Deep Sh*t After Trying To Sell Black Classmates Into Slavery On Craigslist). 'White', on the other hand, is a less racial term, more than a third of its occurences are in relation to the White House.  
 
-##### Two-Word Phrases - Word Cloud, Bar Chart
+##### Two-Word Phrases 
 
 ``` {r, echo=FALSE}
 
@@ -174,7 +174,7 @@ Various versions of Donald Trump's name dominates two-word phrases in the fake n
 
 Some other common bigrams include governmental terms like 'White House', 'Supreme Court'; some second-tier US political leaders like Bernie Sanders, Ted Cruz, Kellyanne Conway, Elizabeth Warren, Nancy Peloisi; and some politically loaded terms like 'fake news', 'illegal alien' and 'Muslim refugees'. 
 
-##### Three-Word Phrases - Bar Chart, Sankey Diagram
+##### Three-Word Phrases
 
 ```{r, echo=FALSE}
 
@@ -219,7 +219,7 @@ saveWidget(sankeyNetwork(Links = links_trigram, Nodes = nodes_trigram, Source = 
 
   CNN, on the other hand, finds favourable mention several times (Eg - CNN Just Went After Trump For His Latest Meltdown, And It Was Unbelievably BRILLIANT (VIDEO)).
 
-##### Four-Word Phrases - Bar Chart
+##### Four-Word Phrases
 
 ```{r, echo=FALSE}
 
@@ -235,9 +235,9 @@ A few other clickbait phrases are evident here. 'Watch what happens when' turns 
 
 'You need to know' and 'need to know about' are variations of the same clickbait phrase that occurs around 25 times (Eg - TOP TEN Clinton Scandals That Wikileaks Exposed And That YOU Need To Know About).
 
-##### Five-Word Phrases - Network Graph
+##### Five-Word Phrases 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 filtered_ngrams <- pentagrams %>%
   filter(n > 5) %>%
@@ -257,7 +257,7 @@ The number of occurrences go down as we move into pentagrams and hexagrams, but 
 
 A few curious examples shown in the above network graph are 'NFL players disrespecting our flag' (6 times) and 'Bill Clinton is a rapist' (8 times). These phrases can be seen as having gained currency as recognisable entities (like the BLM social movement) for a short while but then died down.
 
-##### Six-Word Phrases - Treemap
+##### Six-Word Phrases
 
 ```{r, echo=FALSE}
 
