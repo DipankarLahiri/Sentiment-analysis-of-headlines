@@ -68,9 +68,9 @@ library(plotly)
 
 ## Fake News Dataset
 
-Cleaning headlines for analysis, finding frequencies of words and word combinations.
+```{r, include=FALSE}
 
-```{r}
+#Cleaning headlines for analysis, finding frequencies of words and word combinations.
 
 headlines_df <- read_csv("Fake.csv")
 headlines_df$title <- tolower(headlines_df$title)
@@ -117,7 +117,7 @@ head(hexagrams, 10)
 
 ##### Single Words - Word Cloud, Bar chart
 
-```{r}
+```{r, echo=FALSE}
 
 set.seed(123)
 wordcloud(words = word_freq$word, 
@@ -154,7 +154,7 @@ ggplot(top_words, aes(x = reorder(word, n), y = n)) +
 
 ##### Two-Word Phrases - Word Cloud, Bar Chart
 
-``` {r}
+``` {r, echo=FALSE}
 
 bigrams %>%
   filter(n > 5) %>% 
@@ -176,7 +176,7 @@ Some other common bigrams include governmental terms like 'White House', 'Suprem
 
 ##### Three-Word Phrases - Bar Chart, Sankey Diagram
 
-```{r}
+```{r, echo=FALSE}
 
 plot_ngrams <- function(df, title, top_n = 20) {
   df %>%
@@ -221,7 +221,7 @@ saveWidget(sankeyNetwork(Links = links_trigram, Nodes = nodes_trigram, Source = 
 
 ##### Four-Word Phrases - Bar Chart
 
-```{r}
+```{r, echo=FALSE}
 
 plot_ngrams(quadgrams, "Top 20 Quadgrams")
 
@@ -237,7 +237,7 @@ A few other clickbait phrases are evident here. 'Watch what happens when' turns 
 
 ##### Five-Word Phrases - Network Graph
 
-```{r}
+```{r, echo=FALSE}
 
 filtered_ngrams <- pentagrams %>%
   filter(n > 5) %>%
@@ -259,7 +259,7 @@ A few curious examples shown in the above network graph are 'NFL players disresp
 
 ##### Six-Word Phrases - Treemap
 
-```{r}
+```{r, echo=FALSE}
 
 hexagram_data <- hexagrams %>%
   top_n(20, wt = n) %>%
@@ -280,7 +280,7 @@ treemap(hexagram_data,
 
 ### Emotion Detection in Headlines
 
-```{r}
+```{r, echo=FALSE}
 
 nrc_lexicon <- read_excel("~/Downloads/NRC-Emotion-Lexicon-v0.92-In105Languages-Nov2017Translations.xlsx")
 nrc_cleaned <- nrc_lexicon %>%
@@ -309,7 +309,7 @@ Surprise (0.18) and fear (0.16) are the emotions most represented. Joy (0.07) is
 
 ### Emotion Visualisation
 
-```{r}
+```{r, echo=FALSE}
 
 headlines_emotions_df %>%
   summarize(across(Positive:Trust, sum, na.rm = TRUE)) %>%
@@ -346,9 +346,9 @@ Surprise is the emotion occurring most independently, or in other words, it has 
 
 ---------------------------------
 
-## Scraping Headlines from 'The Bridge' Website
+## Analysing Live Headlines from 'The Bridge' Website
 
-```{r}
+```{r, include=FALSE}
 
 base_url <- "https://thebridge.in/latest"
 all_headlines <- c()  
@@ -378,9 +378,10 @@ bridge_headlines_df <- data.frame(headline = all_headlines)
 
 ```
 
-## Creating Function for Automation of Headline Analysis
 
-```{r}
+```{r, include=FALSE}
+
+# Creating Function for Automation of Headline Analysis
 
 process_headlines_full <- function(df, text_col, lexicon) {
   library(tidyverse)
@@ -562,9 +563,10 @@ heatmap(emotion_heat_data,
 
 ```
 
-## Running the Analysis Function on 'The Bridge' Dataset
 
-```{r}
+```{r, echo=FALSE}
+
+# Running the Analysis Function on 'The Bridge' Dataset
 
 bridge_headlines_df <- read_csv("bridge_headlines.csv")
 bridge_results <- process_headlines_full(bridge_headlines_df, headline, nrc_cleaned)
