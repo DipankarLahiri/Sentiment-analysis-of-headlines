@@ -280,7 +280,7 @@ treemap(hexagram_data,
 
 ### Emotion Detection in Headlines
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 nrc_lexicon <- read_excel("~/Downloads/NRC-Emotion-Lexicon-v0.92-In105Languages-Nov2017Translations.xlsx")
 nrc_cleaned <- nrc_lexicon %>%
@@ -348,7 +348,7 @@ Surprise is the emotion occurring most independently, or in other words, it has 
 
 ## Analysing Live Headlines from 'The Bridge' Website
 
-```{r, include=FALSE}
+```{r, include=FALSE, message=FALSE, warning=FALSE}
 
 base_url <- "https://thebridge.in/latest"
 all_headlines <- c()  
@@ -379,11 +379,12 @@ bridge_headlines_df <- data.frame(headline = all_headlines)
 ```
 
 
-```{r, include=FALSE}
+```{r, include=FALSE, message=FALSE, warning=FALSE}
 
 # Creating Function for Automation of Headline Analysis
 
 process_headlines_full <- function(df, text_col, lexicon) {
+  suppressPackageStartupMessages({
   library(tidyverse)
   library(tidytext)
   library(rvest)
@@ -394,7 +395,7 @@ process_headlines_full <- function(df, text_col, lexicon) {
   library(ggraph)
   library(networkD3)
   library(treemapify)
-  library(reshape2)
+  library(reshape2)})
   
   df <- df %>% 
     rename(title = {{ text_col }}) %>%
@@ -485,8 +486,8 @@ process_headlines_full <- function(df, text_col, lexicon) {
                   fontSize = 12, nodeWidth = 30)
   }
   
-  trigram_sankey <- create_sankey(trigrams, 3)
-  quadgram_sankey <- create_sankey(quadgrams, 4)
+  trigram_sankey <- suppressMessages(create_sankey(trigrams, 3))
+  quadgram_sankey <- suppressMessages(create_sankey(quadgrams, 4))
   
   pentagram_graph <- function(penta_df) {
     penta_split <- penta_df %>%
@@ -530,16 +531,6 @@ process_headlines_full <- function(df, text_col, lexicon) {
   
   df_emotions_filtered <- df_emotions %>%
   filter(rowSums(select(., Positive:Trust) != 0) > 0)
-
-emotion_heat_data <- as.matrix(df_emotions_filtered %>% select(Positive:Trust))
-
-heatmap(emotion_heat_data, 
-        scale = "column", 
-        col = heat.colors(256), 
-        margins = c(5, 10), 
-        xlab = "Emotion", 
-        ylab = "Headline",
-        main = "Emotion Heatmap of Headlines")
   
   return(list(
     word_freq_table = word_freq,
@@ -556,7 +547,8 @@ heatmap(emotion_heat_data,
     quadgram_sankey = quadgram_sankey,
     pentagram_network = pentagram_network,
     hexagram_treemap = hexagram_treemap,
-    emotion_bar_chart = emotion_bar
+    emotion_bar_chart = emotion_bar,
+    df_emotions_filtered = df_emotions_filtered
   ))
 }
 
@@ -564,25 +556,33 @@ heatmap(emotion_heat_data,
 ```
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
 
 # Running the Analysis Function on 'The Bridge' Dataset
 
-bridge_headlines_df <- read_csv("bridge_headlines.csv")
 bridge_results <- process_headlines_full(bridge_headlines_df, headline, nrc_cleaned)
 
-head(bridge_results$word_freq_table,60)
-head(bridge_results$bigrams_table)
-head(bridge_results$trigrams_table)
-head(bridge_results$quadgrams_table)
-head(bridge_results$pentagrams_table)
-head(bridge_results$hexagrams_table)
 bridge_results$mean_emotion_table
 
 print(bridge_results$unigram_bar_plot)
 print(bridge_results$trigram_bar_plot)
 print(bridge_results$quadgram_bar_plot)
 print(bridge_results$emotion_bar_chart)
+
+emotion_heat_data <- as.matrix(
+  bridge_results$df_emotions_filtered %>%
+    select(Positive:Trust)
+)
+
+heatmap(
+  emotion_heat_data,
+  scale   = "column",
+  col     = heat.colors(256),
+  margins = c(5, 10),
+  xlab    = "Emotion",
+  ylab    = "Headline",
+  main    = "Emotion Heatmap of Headlines"
+)
 
 ```
 
